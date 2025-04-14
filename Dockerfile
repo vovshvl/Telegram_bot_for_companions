@@ -36,7 +36,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy your app code
-COPY . /app
+COPY .. /app
 WORKDIR /app
 
 # Run the bot

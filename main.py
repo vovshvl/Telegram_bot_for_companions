@@ -31,13 +31,13 @@ logger = logging.getLogger(__name__)
 
 TOKEN = "7928841741:AAGCeKPeAyIVVTOAq2aZFcadi7_sHQDtdhA"  # Замените на ваш токен
 
-USERS_FILE = "Data stored/users.json"
+USERS_FILE = "users.json"
 
 
 async def ask_code(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     context.user_data["verification"] = update.message.text.strip()
 
-    with open("Data stored/Codes.json", "r") as f:
+    with open("Codes.json", "r") as f:
         codes_data = json.load(f)
         codes = codes_data.get("codes", [])
 
