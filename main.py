@@ -13,13 +13,14 @@ from telegram.ext import (
 )
 from selenium.webdriver.chrome.options import Options
 import json
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
+import time
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import time
+from webdriver_manager.chrome import ChromeDriverManager
+
 # Этапы диалога
 ASK_UID, ASK_VERIFICATION, ASK_CODE = range(3)
 
@@ -150,8 +151,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     await update.message.reply_text(help_text, parse_mode="Markdown")
 
-
-def redeem_code(uid, verification_code, gift_code):
+def redeem_code(uid, verification_code, codes):
     options = Options()
     options.add_argument("--headless")  # обязательный для Railway
     options.add_argument("--no-sandbox")
@@ -167,43 +167,48 @@ def redeem_code(uid, verification_code, gift_code):
         wait = WebDriverWait(driver, 10)
         driver.get("https://cdkey.lilith.com/afk-global")
 
-        print("[+] Нажимаем на 'Companions'")
-        companions_radio = wait.until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "input[type='radio'][value='group']")))
+        print("[+] Входим один раз")
+        companions_radio = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "input[type='radio'][value='group']")))
         driver.execute_script("arguments[0].click();", companions_radio)
 
-        print("[+] Вводим UID")
         uid_input = wait.until(EC.presence_of_element_located((By.XPATH, "//input[@placeholder='Enter Text']")))
         uid_input.send_keys(uid)
 
-        print("[+] Вводим Verification Code")
-        verification_input = wait.until(
-            EC.presence_of_element_located((By.XPATH, "//input[@placeholder='Enter Verification Code']")))
+        verification_input = wait.until(EC.presence_of_element_located((By.XPATH, "//input[@placeholder='Enter Verification Code']")))
         verification_input.send_keys(verification_code)
 
-        print("[+] Нажимаем 'Log In'")
         login_button = wait.until(EC.element_to_be_clickable((By.CLASS_NAME, "loginBtn___1N4RM")))
         login_button.click()
 
-        print("[*] Ждём появления поля Gift Code")
-        time.sleep(3)  # можно заменить на более точное ожидание, но этого обычно хватает
+        time.sleep(3)  # Ждём перехода к полю gift-кодов
 
-        print("[+] Вводим Gift Code")
-        gift_input = wait.until(EC.presence_of_element_located((By.XPATH, "//input[@placeholder='Enter Gift Code']")))
-        gift_input.send_keys(gift_code)
+        for code in codes:
+            print(f"[→] Пробуем код: {code}")
+            gift_input = wait.until(EC.presence_of_element_located((By.XPATH, "//input[@placeholder='Enter Gift Code']")))
+            gift_input.clear()
+            gift_input.send_keys(code)
+            i = 0
 
-        print("[+] Нажимаем 'Redeem'")
-        redeem_button = wait.until(EC.element_to_be_clickable((By.CLASS_NAME, "exchangeBtn___2mrmp")))
-        redeem_button.click()
 
-        print("[✅] Успешно!")
-        return "Успешно активировано!"
+
+
+            redeem_button = wait.until(EC.element_to_be_clickable((By.CLASS_NAME, "exchangeBtn___2mrmp")))
+            redeem_button.click()
+            while i<20:
+                gift_input.send_keys(Keys.BACKSPACE)
+                i=i+1
+
+
+            time.sleep(5)  # Пауза между кодами
+            print("[✓] Код обработан.")
+
+        return "Все коды были отправлены."
 
     except Exception as e:
-        print("[❌] Ошибка:", e)
         return f"Ошибка: {e}"
 
     finally:
+        time.sleep(5)
         driver.quit()
 
 def main() -> None:
