@@ -20,6 +20,13 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
+from dotenv import load_dotenv
+import os
+
+load_dotenv()  # this loads variables from .env
+
+TOKEN= os.getenv("token")
+
 
 # Этапы диалога
 ASK_UID, ASK_VERIFICATION, ASK_CODE = range(3)
@@ -30,7 +37,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-TOKEN = "7928841741:AAGCeKPeAyIVVTOAq2aZFcadi7_sHQDtdhA"  # Замените на ваш токен
+  # Замените на ваш токен
 
 USERS_FILE = "users.json"
 
